@@ -1,0 +1,60 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "Completed Reminders Archive Schema",
+  "Schema_Version": "1.0.0",
+  "Records_Type": [
+    "CompletedRemindersArchiveSchema"
+  ],
+  "Fields": [
+    {
+      "name": "reminder_id",
+      "type": "string",
+      "description": "Unique identifier for reminder"
+    },
+    {
+      "name": "reminder_text",
+      "type": "string",
+      "description": "Content of reminder message"
+    },
+    {
+      "name": "priority",
+      "type": "string",
+      "description": "Priority: urgent, high, normal, low"
+    },
+    {
+      "name": "creation_date",
+      "type": "string",
+      "description": "ISO 8601 UTC creation timestamp"
+    },
+    {
+      "name": "completion_date",
+      "type": "string",
+      "description": "ISO 8601 UTC completion timestamp"
+    },
+    {
+      "name": "tags",
+      "type": "string",
+      "description": "Comma-separated classification tags"
+    }
+  ],
+  "Values": [
+    [
+      "rem_20261109_023540",
+      "Verify monthly report generation",
+      "high",
+      "2026-11-09 02:35:40 UTC",
+      "2026-11-09 02:35:55 UTC",
+      ""
+    ],
+    [
+      "rem_20261109_023717",
+      "Audit storage definitions and package archives",
+      "high",
+      "2026-11-09 02:37:17 UTC",
+      "2026-11-09 02:37:34 UTC",
+      ""
+    ]
+  ]
+}

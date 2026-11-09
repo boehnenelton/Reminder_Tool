@@ -1,0 +1,48 @@
+{
+  "Format": "BEJSON",
+  "Format_Version": "104a",
+  "Format_Creator": "Elton Boehnen",
+  "Schema_Name": "Reminders Registry Schema",
+  "Schema_Version": "1.0.0",
+  "Records_Type": [
+    "RemindersRegistrySchema"
+  ],
+  "Fields": [
+    {
+      "name": "reminder_id",
+      "type": "string",
+      "description": "Unique identifier for reminder"
+    },
+    {
+      "name": "reminder_text",
+      "type": "string",
+      "description": "Content of reminder message"
+    },
+    {
+      "name": "priority",
+      "type": "string",
+      "description": "Priority: urgent, high, normal, low"
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "description": "Status: active"
+    },
+    {
+      "name": "creation_date",
+      "type": "string",
+      "description": "ISO 8601 UTC creation timestamp"
+    },
+    {
+      "name": "due_date",
+      "type": "string",
+      "description": "Optional deadline or target date"
+    },
+    {
+      "name": "tags",
+      "type": "string",
+      "description": "Comma-separated classification tags"
+    }
+  ],
+  "Values": []
+}
