@@ -75,19 +75,36 @@ COLOR_RESET: str = "\033[0m"
 COLOR_DIM: str = "\033[2m"
 COLOR_BOLD: str = "\033[1m"
 COLOR_WHITE_BOLD: str = "\033[1;37m"
+COLOR_WHITE_PLAIN: str = "\033[0;37m"
 
 NO_COLOR: bool = os.getenv("NO_COLOR") is not None
 COLORTERM: str = os.getenv("COLORTERM", "").lower()
 SUPPORTS_TRUECOLOR: bool = "truecolor" in COLORTERM or "24bit" in COLORTERM
+IS_TTY: bool = sys.stdout.isatty() or sys.stderr.isatty()
 
-ACCENT: str = (COLOR_HEX_RED if SUPPORTS_TRUECOLOR else COLOR_ANSI_RED) if not NO_COLOR and sys.stdout.isatty() else ""
-RESET: str = COLOR_RESET if not NO_COLOR and sys.stdout.isatty() else ""
-DIM: str = COLOR_DIM if not NO_COLOR and sys.stdout.isatty() else ""
-BOLD: str = COLOR_BOLD if not NO_COLOR and sys.stdout.isatty() else ""
-WHITE_BOLD: str = COLOR_WHITE_BOLD if not NO_COLOR and sys.stdout.isatty() else ""
+ACCENT: str = (COLOR_HEX_RED if SUPPORTS_TRUECOLOR else COLOR_ANSI_RED) if not NO_COLOR and IS_TTY else ""
+RESET: str = COLOR_RESET if not NO_COLOR and IS_TTY else ""
+DIM: str = COLOR_DIM if not NO_COLOR and IS_TTY else ""
+BOLD: str = COLOR_BOLD if not NO_COLOR and IS_TTY else ""
+WHITE_BOLD: str = COLOR_WHITE_BOLD if not NO_COLOR and IS_TTY else ""
+WHITE_PLAIN: str = COLOR_WHITE_PLAIN if not NO_COLOR and IS_TTY else ""
+WHITE: str = WHITE_BOLD
+NEUTRAL: str = WHITE_PLAIN
 
 DIVIDER_57: str = "=" * 57
 SUBDIVIDER_57: str = "-" * 57
+
+
+def print_positive(message: str) -> None:
+    """Print positive status message in white lowercase."""
+    print(f"{WHITE}[✓] {message.lower()}{RESET}")
+
+
+def print_fail(message: str) -> None:
+    """Print failure error message in #DE2626 UPPERCASE RED."""
+    err_stream = sys.stderr
+    print(f"{ACCENT}[✗] {message.upper()}{RESET}", file=err_stream)
+
 
 # ── Canonical BEJSON 104a Schemas ────────────────────────────────────────────
 REMINDERS_FIELDS: List[Dict[str, str]] = [
@@ -462,7 +479,7 @@ def main() -> int:
     if first_arg in ("add", "new", "create"):
         sub_args = arguments[1:]
         if not sub_args:
-            print(f"{ACCENT}[✗] Error:{RESET} Reminder text required. Example: remind add Update documentation", file=sys.stderr)
+            print_fail("REMINDER TEXT REQUIRED. EXAMPLE: REMIND ADD UPDATE DOCUMENTATION")
             return 1
 
         priority = "normal"
@@ -489,52 +506,50 @@ def main() -> int:
 
         reminder_text = " ".join(text_tokens).strip()
         if not reminder_text:
-            print(f"{ACCENT}[✗] Error:{RESET} Reminder text cannot be empty.", file=sys.stderr)
+            print_fail("REMINDER TEXT CANNOT BE EMPTY.")
             return 1
 
         created = engine.add_reminder(reminder_text, priority=priority, due_date=due_date, tags=tags)
-        print(DIVIDER_57)
-        print(f" {ACCENT}[✓] REMINDER ADDED{RESET}")
-        print(SUBDIVIDER_57)
-        print(f" {ACCENT}Text:{RESET}     {created['reminder_text']}")
-        print(f" {ACCENT}Priority:{RESET} [{created['priority'].upper()}]")
-        print(f" {ACCENT}ID:{RESET}       {created['reminder_id']}")
-        print(DIVIDER_57)
+        print_positive(f"reminder added: {created['reminder_text']}")
+        print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
+        print(f" {ACCENT}Text:{RESET}     {NEUTRAL}{created['reminder_text']}{RESET}")
+        print(f" {ACCENT}Priority:{RESET} {NEUTRAL}[{created['priority'].upper()}]{RESET}")
+        print(f" {ACCENT}ID:{RESET}       {NEUTRAL}{created['reminder_id']}{RESET}")
+        print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
         return 0
 
     # Complete reminder: 'done', 'complete', 'finish'
     if first_arg in ("done", "complete", "finish", "check"):
         if len(arguments) < 2:
-            print(f"{ACCENT}[✗] Error:{RESET} Target identifier or index required: remind done <index|id>", file=sys.stderr)
+            print_fail("TARGET IDENTIFIER OR INDEX REQUIRED: REMIND DONE <INDEX|ID>")
             return 1
         target = arguments[1]
         completed = engine.complete_reminder(target)
         if completed:
-            print(DIVIDER_57)
-            print(f" {ACCENT}[✓] REMINDER COMPLETED & REMOVED{RESET}")
-            print(SUBDIVIDER_57)
-            print(f" {ACCENT}Text:{RESET}      {completed['reminder_text']}")
-            print(f" {ACCENT}Completed:{RESET} {completed['completion_date']}")
-            print(SUBDIVIDER_57)
-            print(f" {DIM}Removed from active queue; archived in completed_reminders.104a.bejson.{RESET}")
-            print(DIVIDER_57)
+            print_positive(f"reminder completed & removed: {completed['reminder_text']}")
+            print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
+            print(f" {ACCENT}Text:{RESET}      {NEUTRAL}{completed['reminder_text']}{RESET}")
+            print(f" {ACCENT}Completed:{RESET} {NEUTRAL}{completed['completion_date']}{RESET}")
+            print(f"{NEUTRAL}{SUBDIVIDER_57}{RESET}")
+            print(f" {DIM}removed from active queue; archived in completed_reminders.104a.bejson.{RESET}")
+            print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
             return 0
         else:
-            print(f"{ACCENT}[✗] Error:{RESET} Reminder '{target}' not found.", file=sys.stderr)
+            print_fail(f"REMINDER '{target.upper()}' NOT FOUND.")
             return 1
 
     # Remove reminder permanently: 'rm', 'del', 'delete'
     if first_arg in ("rm", "del", "delete", "remove"):
         if len(arguments) < 2:
-            print(f"{ACCENT}[✗] Error:{RESET} Target required: remind rm <index|id>", file=sys.stderr)
+            print_fail("TARGET REQUIRED: REMIND RM <INDEX|ID>")
             return 1
         target = arguments[1]
         success = engine.delete_reminder(target)
         if success:
-            print(f"{ACCENT}[✓] Reminder '{target}' permanently deleted.{RESET}")
+            print_positive(f"reminder '{target}' permanently deleted.")
             return 0
         else:
-            print(f"{ACCENT}[✗] Error:{RESET} Reminder '{target}' not found.", file=sys.stderr)
+            print_fail(f"REMINDER '{target.upper()}' NOT FOUND.")
             return 1
 
     # List active
@@ -551,13 +566,12 @@ def main() -> int:
     # e.g. 'remind "buy milk"' or 'remind buy milk'
     reminder_text = " ".join(arguments).strip()
     created = engine.add_reminder(reminder_text, priority="normal")
-    print(DIVIDER_57)
-    print(f" {ACCENT}[✓] REMINDER ADDED{RESET}")
-    print(SUBDIVIDER_57)
-    print(f" {ACCENT}Text:{RESET}     {created['reminder_text']}")
-    print(f" {ACCENT}Priority:{RESET} [{created['priority'].upper()}]")
-    print(f" {ACCENT}ID:{RESET}       {created['reminder_id']}")
-    print(DIVIDER_57)
+    print_positive(f"reminder added: {created['reminder_text']}")
+    print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
+    print(f" {ACCENT}Text:{RESET}     {NEUTRAL}{created['reminder_text']}{RESET}")
+    print(f" {ACCENT}Priority:{RESET} {NEUTRAL}[{created['priority'].upper()}]{RESET}")
+    print(f" {ACCENT}ID:{RESET}       {NEUTRAL}{created['reminder_id']}{RESET}")
+    print(f"{NEUTRAL}{DIVIDER_57}{RESET}")
     return 0
 
 
